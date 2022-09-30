@@ -34,15 +34,6 @@ resource "random_password" "this" {
   override_special = "@$"
 }
 
-resource "equinix_network_ssh_user" "this" {
-  username = "apopa"
-  password = random_password.this.result
-  device_ids = [
-    equinix_network_device.am.uuid,
-    equinix_network_device.dc.uuid
-  ]
-}
-
 resource "equinix_network_acl_template" "this" {
   name        = "${random_pet.this.id}_allow_all_acl"
   description = "Allow all traffic"
@@ -73,7 +64,7 @@ resource "equinix_network_device" "am" {
   core_count      = 2
   ssh_key {
     username = equinix_network_ssh_key.this.name
-    key_name = equinix_network_ssh_key.this.public_key
+    key_name = equinix_network_ssh_key.this.name
   }
   timeouts {
     create = "60m"
@@ -95,8 +86,12 @@ resource "equinix_network_device" "dc" {
   hostname        = random_pet.this.id
   term_length     = 12
   account_number  = data.equinix_network_account.dc.number
-  version         = "16.12.03"
+  version         = "17.03.03"
   core_count      = 2
+  ssh_key {
+    username = equinix_network_ssh_key.this.name
+    key_name = equinix_network_ssh_key.this.name
+  }
   timeouts {
     create = "60m"
     delete = "2h"
