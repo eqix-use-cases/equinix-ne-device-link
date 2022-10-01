@@ -1,17 +1,7 @@
-/* output "ssh_username" {
-  value = equinix_network_ssh_user.this.username
-}
-
-output "password" {
-  sensitive = true
-  value = equinix_network_ssh_user.this.password
-}*/
-
-/*output "ssh_into_it" {
+output "ssh_into_it" {
   value = <<-EOT
-  EOT
-}*/
+  ssh ${equinix_network_ssh_key.this.name}@${equinix_network_device.am.ssh_ip_address} -i ${random_pet.this.id}.pem
 
-//output "ip1" {
-//  value = equinix_network_device.am.ssh_ip_address
-//}
+  ssh ${equinix_network_ssh_key.this.name}@${equinix_network_device.dc.ssh_ip_address} -i ${random_pet.this.id}.pem
+  EOT
+}

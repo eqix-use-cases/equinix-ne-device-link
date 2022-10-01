@@ -18,7 +18,7 @@ resource "tls_private_key" "key" {
 }
 
 resource "equinix_network_ssh_key" "this" {
-  name       = "apopa"
+  name       = var.username
   public_key = tls_private_key.key.public_key_openssh
 }
 
@@ -26,12 +26,6 @@ resource "local_sensitive_file" "private_key_pem" {
   content         = tls_private_key.key.private_key_pem
   filename        = "${random_pet.this.id}.pem"
   file_permission = "0600"
-}
-
-resource "random_password" "this" {
-  length           = 12
-  special          = true
-  override_special = "@$"
 }
 
 resource "equinix_network_acl_template" "this" {
@@ -54,13 +48,13 @@ resource "equinix_network_device" "am" {
   throughput      = 500
   throughput_unit = "Mbps"
   metro_code      = data.equinix_network_account.am.metro_code
-  type_code       = "CSR1000V"
+  type_code       = var.route_os
   package_code    = "SEC"
-  notifications   = ["andrei.popa@eu.equinix.com"]
+  notifications   = var.notification_email
   hostname        = random_pet.this.id
   term_length     = 12
   account_number  = data.equinix_network_account.am.number
-  version         = "17.03.03"
+  version         = var.route_os_version
   core_count      = 2
   ssh_key {
     username = equinix_network_ssh_key.this.name
@@ -80,13 +74,13 @@ resource "equinix_network_device" "dc" {
   throughput      = 500
   throughput_unit = "Mbps"
   metro_code      = data.equinix_network_account.dc.metro_code
-  type_code       = "CSR1000V"
+  type_code       = var.route_os
   package_code    = "SEC"
-  notifications   = ["andrei.popa@eu.equinix.com"]
+  notifications   = var.notification_email
   hostname        = random_pet.this.id
   term_length     = 12
   account_number  = data.equinix_network_account.dc.number
-  version         = "17.03.03"
+  version         = var.route_os_version
   core_count      = 2
   ssh_key {
     username = equinix_network_ssh_key.this.name
@@ -100,7 +94,6 @@ resource "equinix_network_device" "dc" {
 
 resource "equinix_network_device_link" "this" {
   name   = random_pet.this.id
-  subnet = "192.168.40.64/27"
   device {
     id           = equinix_network_device.am.uuid
     asn          = equinix_network_device.am.asn > 0 ? equinix_network_device.am.asn : 65000
